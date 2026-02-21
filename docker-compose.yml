@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: frame-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: frame_db
+      POSTGRES_USER: frame_user
+      POSTGRES_PASSWORD: frame_password_dev
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U frame_user -d frame_db']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  redis:
+    image: redis:6.2-alpine
+    container_name: frame-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
