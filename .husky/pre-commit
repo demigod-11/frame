@@ -2,7 +2,7 @@ echo "🔍 Running pre-commit checks..."
 echo ""
 
 # ── Step 1: lint-staged (ESLint + Prettier on staged files) ──
-echo "📝 Step 1/2: Linting staged files..."
+echo "📝 Step 1: Linting staged files..."
 npx lint-staged
 LINT_EXIT_CODE=$?
 
@@ -15,4 +15,4 @@ fi
 
 echo ""
 echo "✅ All pre-commit checks passed!"
-echo ""
+echo 
