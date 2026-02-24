@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { Request, Response } from 'express';
 
 @Catch()
@@ -15,7 +16,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
+    const request = ctx.getRequest<Request & { requestId?: string }>();
+    const requestId = this.getOrCreateRequestId(request);
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let errorCode = 'INTERNAL_ERROR';
@@ -49,9 +51,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       path: request.url,
       method: request.method,
       ip: request.ip,
+      requestId,
       timestamp: new Date().toISOString(),
     });
 
+    response.setHeader('x-request-id', requestId);
     response.status(status).json({
       success: false,
       error: {
@@ -60,6 +64,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         statusCode: status,
       },
       meta: {
+        requestId,
         timestamp: new Date().toISOString(),
       },
     });
@@ -78,5 +83,30 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       503: 'SERVICE_UNAVAILABLE',
     };
     return codeMap[status] || 'UNKNOWN_ERROR';
+  }
+
+  private getOrCreateRequestId(
+    request: Request & { requestId?: string },
+  ): string {
+    if (request.requestId) {
+      return request.requestId;
+    }
+
+    const headerValue = request.headers['x-request-id'];
+    if (typeof headerValue === 'string' && headerValue.trim().length > 0) {
+      request.requestId = headerValue;
+      return request.requestId;
+    }
+
+    if (Array.isArray(headerValue) && headerValue.length > 0) {
+      const first = headerValue[0]?.trim();
+      if (first) {
+        request.requestId = first;
+        return request.requestId;
+      }
+    }
+
+    request.requestId = randomUUID();
+    return request.requestId;
   }
 }
