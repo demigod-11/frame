@@ -10,18 +10,20 @@ import {
   databaseConfig,
   redisConfig,
   jwtConfig,
+  throttleConfig,
   validate,
 } from './common/config';
 import { JwtConfig } from './common/config/jwt.config';
 
 import { RedisModule } from './common/redis/redis.module';
 import { HealthModule } from './health/health.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig, redisConfig, jwtConfig],
+      load: [databaseConfig, redisConfig, jwtConfig, throttleConfig],
       validate,
       envFilePath: ['.env'],
     }),
@@ -60,6 +62,7 @@ import { HealthModule } from './health/health.module';
 
     RedisModule,
     HealthModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [AppService],
