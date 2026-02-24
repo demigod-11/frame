@@ -31,10 +31,9 @@ async function bootstrap(): Promise<void> {
   });
 
   // Global Prefix
-  const apiPrefix = process.env.API_PREFIX || 'v1';
+  const apiPrefix = process.env.API_PREFIX || 'api/v1';
   app.setGlobalPrefix(apiPrefix);
 
-  // Validation
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
